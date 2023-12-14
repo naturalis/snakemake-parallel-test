@@ -12,9 +12,10 @@ GetOptions(
 opendir my $dh, $indir or die $!;
 open my $out, '>', $outfile or die $!;
 while( my $entry = readdir $dh ) {
-	next if $entry =~ /\.\.?/;
-	open my $in, '<', "${indir}/${entry}" or die $!;
-	while(<$in>) {
-		print $out "final: ", $_;
+	if ( $entry =~ /final_processed/ ) {
+		open my $in, '<', "${indir}/${entry}" or die $!;
+		while(<$in>) {
+			print $out "final: $_\n";
+		}
 	}
 }
