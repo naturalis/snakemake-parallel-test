@@ -5,8 +5,8 @@ use Getopt::Long;
 
 my ( $infile, $outfile );
 GetOptions(
-	'infile=s'  => \$infile,
-	'outfile=s' => \$outfile,
+	'input=s'  => \$infile,
+	'output=s' => \$outfile,
 );
 
 open my $in,  '<', $infile  or die $!;
