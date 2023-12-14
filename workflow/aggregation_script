@@ -1,0 +1,20 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Getopt::Long;
+
+my ( $indir, $outfile );
+GetOptions(
+	'input_dir=s' => \$indir,
+	'output=s'    => \$outfile,
+);
+
+opendir my $dh, $indir or die $!;
+open my $out, '>', $outfile or die $!;
+while( my $entry = readdir $dh ) {
+	next if $entry =~ /\.\.?/;
+	open my $in, '<', "${indir}/${entry}" or die $!;
+	while(<$in>) {
+		print $out "final: ", $_;
+	}
+}

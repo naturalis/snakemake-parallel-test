@@ -1,0 +1,23 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Getopt::Long;
+use File::Path 'make_path';
+
+my ( $infile, $outdir );
+GetOptions(
+	'input=s'      => \$infile,
+	'output_dir=s' => \$outdir,
+);
+
+make_path($outdir) unless -d $outdir;
+
+open my $in, '<', $infile or die $!;
+while(<$in>) {
+	chomp;
+	my ( $prefix, $index ) = split /\t/, $_;
+	open my $out, '>', "${outdir}/${index}.txt" or die "Can't create ${outdir}/${index}.txt - $!";
+	print $out $_;
+	close $out;
+
+}

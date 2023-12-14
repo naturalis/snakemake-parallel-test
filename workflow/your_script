@@ -1,0 +1,17 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Getopt::Long;
+
+my ( $input, $output );
+GetOptions(
+	'input=s'  => \$input,
+	'output=s' => \$output,
+);
+
+open my $in, '<', $input or die $!;
+open my $out, '>', $output or die $!;
+
+while(<$in>) {
+	print $out "your_script\t$_";
+}

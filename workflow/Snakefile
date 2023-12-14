@@ -1,0 +1,55 @@
+
+
+# keep me at the top
+rule all:
+    input:
+        "results/final_output.txt"
+
+# takes one input, produces one output 
+rule first_rule:
+    input:
+        "data/input.txt"
+    output:
+        "intermediate/single_output.txt"
+    shell:
+        "workflow/your_script --input {input} --output {output}"
+
+# takes one input, expands to a directory of outputs
+rule second_rule:
+    input:
+        "intermediate/single_output.txt"
+    output:
+        directory("intermediate/multiple_outputs/")
+    shell:
+        "workflow/your_directory_script --input {input} --output_dir {output}"
+
+# Define SAMPLES based on the contents of the directory
+import glob
+SAMPLES = [file.split('/')[-1].replace('.txt', '') for file in glob.glob("intermediate/multiple_outputs/*.txt")]
+
+# takes directory of outputs and processes each in parallel
+rule third_rule:
+    input:
+        lambda wildcards: expand("intermediate/multiple_outputs/{sample}.txt", sample=SAMPLES)
+    output:
+        "intermediate/processed_{sample}.txt"
+    shell:
+        "workflow/parallel_processing_script --input {input} --output {output}"
+
+# takes directory of outputs and processes each in parallel
+rule fourth_rule:
+    input:
+        lambda wildcards: expand("intermediate/processed_{sample}.txt", sample=SAMPLES)
+    output:
+        "intermediate/final_processed_{sample}.txt"
+    shell:
+        "workflow/another_script --input {input} --output {output}"
+
+# takes directory of outputs and aggregates those into a single, final result
+rule final_rule:
+    input:
+        lambda wildcards: expand("intermediate/final_processed_{sample}.txt", sample=SAMPLES)
+    output:
+        "results/final_output.txt"
+    shell:
+        "workflow/aggregation_script --input_dir intermediate/ --output {output}"
