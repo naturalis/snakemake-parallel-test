@@ -14,3 +14,5 @@ of a SnakeMake [pipeline](workflow/Snakefile). The intention is the following:
 5. a rule `final_rule` that is invoked after rule 4. that takes the directory as input
    and that aggregates all outputs in that directory in a single operation, i.e. not
    parallel.
+
+![](concept.png)
