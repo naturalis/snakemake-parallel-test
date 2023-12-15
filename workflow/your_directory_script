@@ -2,22 +2,20 @@
 use strict;
 use warnings;
 use Getopt::Long;
-use File::Path 'make_path';
 
-my ( $infile, $outdir );
+my ( $infile, $outfiles );
 GetOptions(
-	'input=s'      => \$infile,
-	'output_dir=s' => \$outdir,
+	'input=s'  => \$infile,
+	'output=s' => \$outfiles,
 );
 
-make_path($outdir) unless -d $outdir;
+my @outfiles = split /\s+/, $outfiles;
 
 open my $in, '<', $infile or die $!;
 while(<$in>) {
 	chomp;
-	my ( $prefix, $index ) = split /\t/, $_;
-	open my $out, '>', "${outdir}/${index}.txt" or die "Can't create ${outdir}/${index}.txt - $!";
+	my ( $prefix, $index ) = split /\t/, $_;	
+	open my $out, '>', $outfiles[$index-1] or die $!;
 	print $out $_;
 	close $out;
-
 }
