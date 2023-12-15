@@ -1,6 +1,6 @@
 # snakemake-parallel-test
 
-This repo contains a **non-working** example of an attempt to parallelize parts
+This repo contains a **not fully working** example of an attempt to parallelize parts
 of a SnakeMake [pipeline](workflow/Snakefile). The intention is the following:
 
 1. a rule `first_rule` with one input and one output
@@ -16,3 +16,24 @@ of a SnakeMake [pipeline](workflow/Snakefile). The intention is the following:
    parallel.
 
 ![](concept.png)
+
+In the current implementation the following things work:
+
+- multiple outputs are produced by `second_rule`
+- the outputs are processed in parallel by `third_rule` and `fourth_rule`
+- the multiple outputs are merged by `final_rule`
+- a DAG figure is computed correctly, as shown below
+
+![](dag.svg)
+
+The approach uses the [scatter/gather idiom](https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#defining-scatter-gather-processes).
+It has a number of drawbacks:
+
+- the intermediate rules that process in parallel cannot be invoked individually. Instead
+  an error about `Target rules may not contain wildcards.` is triggered.
+- the names of the intermediate files now have `{i}-of-{n}` parts in their name, which
+  are hardcoded in the `{scatteritem}` variable by the scatter/gather functionality 
+  (some string processing would fix this)
+- the number of items to scatter needs to be predefined by `scattergather.split` in the
+  Snakefile (can this be modified dynamically?)
+
