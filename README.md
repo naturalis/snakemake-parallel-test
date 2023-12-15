@@ -35,5 +35,5 @@ It has a number of drawbacks:
   are hardcoded in the `{scatteritem}` variable by the scatter/gather functionality 
   (some string processing would fix this)
 - the number of items to scatter needs to be predefined by `scattergather.split` in the
-  Snakefile (can this be modified dynamically?)
+  Snakefile (it seems possible to generate this dynamically, though)
 
