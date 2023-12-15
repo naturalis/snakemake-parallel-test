@@ -3,6 +3,9 @@ rule all:
     input:
         "results/final_output.txt"
 
+scattergather:
+    split=5
+
 # takes one input, produces one output 
 rule first_rule:
     input:
@@ -13,45 +16,36 @@ rule first_rule:
         "workflow/your_script --input {input} --output {output}"
 
 # takes one input, expands to a directory of outputs
-checkpoint second_rule:
+rule second_rule:
     input:
         "intermediate/single_output.txt"
     output:
-        directory("intermediate/multiple_outputs/")
+        scatter.split("intermediate/multiple_outputs/{scatteritem}.txt")
     shell:
-        "workflow/your_directory_script --input {input} --output_dir {output}"
+        "workflow/scatter --input {input} --output '{output}'"
 
 # takes directory of outputs and processes each in parallel
 rule third_rule:
     input:
-        "intermediate/multiple_outputs/{sample}.txt"
+        "intermediate/multiple_outputs/{scatteritem}.txt"
     output:
-        "intermediate/processed_{sample}.txt"
+        "intermediate/processed_{scatteritem}.txt"
     shell:
         "workflow/parallel_processing_script --input {input} --output {output}"
 
 # takes directory of outputs and processes each in parallel
 rule fourth_rule:
     input:
-        "intermediate/processed_{sample}.txt"
+        "intermediate/processed_{scatteritem}.txt"
     output:
-        "intermediate/final_processed_{sample}.txt"
+        "intermediate/final_processed_{scatteritem}.txt"
     shell:
         "workflow/another_script --input {input} --output {output}"
 
-# takes directory of outputs and aggregates those into a single, final result
-def get_final_sample_files(wildcards):
-    checkpoint_output = checkpoints.second_rule.get(**wildcards).output[0]
-    samples = glob_wildcards(
-        os.path.join(checkpoint_output,
-            "{sample}.txt")
-    ).sample
-    return expand(rules.fourth_rule.output[0],
-        sample=samples)
-
+# gathers the results
 rule final_rule:
     input:
-        get_final_sample_files
+        gather.split("intermediate/final_processed_{scatteritem}.txt")
     output:
         "results/final_output.txt"
     shell:
