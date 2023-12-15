@@ -1,5 +1,3 @@
-
-
 # keep me at the top
 rule all:
     input:
@@ -15,7 +13,7 @@ rule first_rule:
         "workflow/your_script --input {input} --output {output}"
 
 # takes one input, expands to a directory of outputs
-rule second_rule:
+checkpoint second_rule:
     input:
         "intermediate/single_output.txt"
     output:
@@ -23,14 +21,10 @@ rule second_rule:
     shell:
         "workflow/your_directory_script --input {input} --output_dir {output}"
 
-# Define SAMPLES based on the contents of the directory
-import glob
-SAMPLES = [file.split('/')[-1].replace('.txt', '') for file in glob.glob("intermediate/multiple_outputs/*.txt")]
-
 # takes directory of outputs and processes each in parallel
 rule third_rule:
     input:
-        lambda wildcards: expand("intermediate/multiple_outputs/{sample}.txt", sample=SAMPLES)
+        "intermediate/multiple_outputs/{sample}.txt"
     output:
         "intermediate/processed_{sample}.txt"
     shell:
@@ -39,16 +33,25 @@ rule third_rule:
 # takes directory of outputs and processes each in parallel
 rule fourth_rule:
     input:
-        lambda wildcards: expand("intermediate/processed_{sample}.txt", sample=SAMPLES)
+        "intermediate/processed_{sample}.txt"
     output:
         "intermediate/final_processed_{sample}.txt"
     shell:
         "workflow/another_script --input {input} --output {output}"
 
 # takes directory of outputs and aggregates those into a single, final result
+def get_final_sample_files(wildcards):
+    checkpoint_output = checkpoints.second_rule.get(**wildcards).output[0]
+    samples = glob_wildcards(
+        os.path.join(checkpoint_output,
+            "{sample}.txt")
+    ).sample
+    return expand(rules.fourth_rule.output[0],
+        sample=samples)
+
 rule final_rule:
     input:
-        lambda wildcards: expand("intermediate/final_processed_{sample}.txt", sample=SAMPLES)
+        get_final_sample_files
     output:
         "results/final_output.txt"
     shell:
